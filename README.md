@@ -127,9 +127,9 @@ let client = createClient();
 
 client.connect(() => {
     
-	/***
- 	 * m2m client (communication through a public internet)
- 	 */
+    /***
+     * m2m client (communication through a public internet)
+     */
     // subscribe from m2m device 100
     client.subscribe({id:100, channel:'m2m-voltage'}, (data) => {
       console.log('device 100 voltage', data);
@@ -141,14 +141,14 @@ client.connect(() => {
     });
 
     /***
- 	 * edge tcp client (communication through a private local network)
- 	 */
+     * edge tcp client (communication through a private local network)
+     */
     let ec1 = new edge.client(8125, '192.168.0.113')
     ec1.subscribe('edge-voltage', (data) => {
       console.log('edge server 1 voltage', data);
     });
 
-	let ec2 = new edge.connect(8125, '192.168.0.142')
+    let ec2 = new edge.connect(8125, '192.168.0.142')
     ec2.subscribe('edge-temperature', (data) => {
       console.log('edge server 2 temperature', data);
     });
