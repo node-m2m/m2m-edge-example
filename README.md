@@ -28,15 +28,15 @@ function voltageSource(){
  * edge tcp server (communication through a private local network)
  */
     
-let port = 8125; 			// port must be open from your endpoint
-let host = '192.168.0.113'; // use the actual ip of your endpoint
+let port = 8125;		// port must be open from your endpoint
+let host = '192.168.0.113'; 	// use the actual ip of your endpoint
 
 edge.createServer({ port:port, host:host }, (server) => {
   console.log('tcp server started :', host, port);
   server.publish('edge-voltage', (tcp) => {
      let data = {}
      data.value = voltageSource();
-     data.interval = 6000; // polling interval to check data source for any changes
+     data.interval = 6000; 	// polling interval to check data source for any changes
      tcp.send(data);
   });
 });
@@ -80,15 +80,15 @@ function tempSource(){
  * edge tcp server (communication through a private local network)
  */
     
-let port = 8125;			// port must be open from your endpoint
-let host = '192.168.0.142'; // use the actual ip of your endpoint
+let port = 8125;		// port must be open from your endpoint
+let host = '192.168.0.142'; 	// use the actual ip of your endpoint
 
 edge.createServer({ port:port, host:host }, (server) => {
   console.log('tcp server started :', host, port);
   server.publish('edge-temperature', (tcp) => {
      let data = {}
      data.value = tempSource();
-     data.interval = 6000; // polling interval to check data source for any changes
+     data.interval = 6000; 	// polling interval to check data source for any changes
      tcp.send(data);
   });
 });
