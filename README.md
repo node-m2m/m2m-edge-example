@@ -1,5 +1,5 @@
 
-## Using M2M to provision client/server edge devices communicating through a private local area network
+## Using M2M to provision pub/sub edge devices communicating through a private local area network
 
 <br>
 
