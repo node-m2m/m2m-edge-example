@@ -1,5 +1,5 @@
 
-## Using M2M to provision pub/sub edge devices communicating through a private local area network
+## A quick demo to provision edge devices communicating through a private local area network using pub/sub pattern 
 
 <br>
 
