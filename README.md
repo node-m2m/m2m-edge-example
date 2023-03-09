@@ -5,7 +5,7 @@
 
 In this example, we will setup endpoint devices communicating to each other through a local area network using tcp. 
 
-The devices are also accessible from the cloud through so you can configure and develop your applications from a browser interface. 
+The devices are also accessible from the cloud so you can configure and develop your applications using a browser interface. 
 
 ![](assets/m2m-edge.svg)
 
