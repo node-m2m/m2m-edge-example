@@ -1,5 +1,5 @@
 
-## A quick demo to provision edge devices communicating through a private local area network using pub/sub pattern 
+## Setup edge devices communicating through a private local area network 
 
 <br>
 
@@ -17,7 +17,7 @@ $ npm install m2m
 ```
 ### 2. Save the code below as device.js in your project directory.
 ```js
-const { edge, createDevice } = require('m2m');
+const m2m = require('m2m');
 
 // simulated voltage sensor data source
 function voltageSource(){
@@ -31,19 +31,26 @@ function voltageSource(){
 let port = 8125;		// port must be open from your endpoint
 let host = '192.168.0.113'; 	// use the actual ip of your endpoint
 
-edge.createServer(port, host, (server) => {
-  console.log('tcp server started :', host, port);
-  server.publish('edge-voltage', (data) => {
+m2m.edge.createServer(port, host, (server) => {
+  console.log('edge server started :', host, port);
+  
+  server.publish('edge-voltage', (data) => { // using default 5 secs polling interval
      let vs = voltageSource();
-     data.polling = 6000; 	// polling interval to check data source for any changes
      tcp.send(vs);
   });
+  
+  server.dataSource('data-source-1', (data) => {
+     if(data.payload){
+        data.send(data.payload);
+     }
+  });
+  
 });
 
 /***
  * m2m device (communication through a public internet)
  */
-let device = createDevice(100);
+let device = new m2m.Device(100); // using deviceId of 100
 
 device.connect(() => {
     device.publish('m2m-voltage', (data) => {
@@ -66,7 +73,7 @@ $ npm install m2m
 ```
 ### 2. Save the code below as device.js in your project directory.
 ```js
-const { edge, createDevice } = require('m2m');
+const m2m = require('m2m');
 
 // simulated temperature sensor data source
 function tempSource(){
@@ -80,19 +87,25 @@ function tempSource(){
 let port = 8125;		// port must be open from your endpoint
 let host = '192.168.0.142'; 	// use the actual ip of your endpoint
 
-edge.createServer(port, host, (server) => {
+m2m.edge.createServer(port, host, (server) => {
   console.log('tcp server started :', host, port);
+  
   server.publish('edge-temperature', (data) => {
      let ts = tempSource();
-     data.polling = 9000; 	// polling interval to check data source for any changes
+     data.polling = 9000; 	// set polling interval to check data source for any changes
      data.send(ts);
   });
+  
+  server.dataSource('current-temp', (data) => {
+     data.send(tempSource()); 
+  })
+  
 });
 
 /***
  * m2m device (communication through a public internet)
  */
-let device = createDevice(200);
+let device = new m2m.Device(200);
 
 device.connect(() => {
     device.publish('m2m-temperature', (data) => {
@@ -115,9 +128,9 @@ $ npm install m2m
 ```
 ### 2. Save the code below as client.js in your project directory.
 ```js
-const { edge, createClient } = require('m2m'); 
+const m2m = require('m2m'); 
 
-let client = createClient();
+let client = new m2m.Client();
 
 client.connect(() => {
     
@@ -135,18 +148,31 @@ client.connect(() => {
     });
 
     /***
-     * edge tcp client (communication through a private local network)
+     * edge tcp clients (communication through a private local network)
      */
-    let ec1 = new edge.client(8125, '192.168.0.113')
+     
+    // client 1 
+    let ec1 = new m2m.edge.client(8125, '192.168.0.113');
+    
     ec1.subscribe('edge-voltage', (data) => {
-      console.log('edge server 1 voltage', data);
+      console.log('edge server 1 voltage', data.toString());
+    });
+    
+    ec2.write('data-source-1', 'node-edge', (data) => {
+      console.log('edge server 2 data-source-1 value', data.toString());
     });
 
-    let ec2 = new edge.connect(8125, '192.168.0.142')
+    // client 2
+    let ec2 = new m2m.edge.connect(8125, '192.168.0.142');
+    
     ec2.subscribe('edge-temperature', (data) => {
-      console.log('edge server 2 temperature', data);
+      console.log('edge server 2 temperature', data.toString());
     });
-
+    
+    ec2.read('current-temp', (data) => {
+      console.log('edge server 2 current temperature', data.toString());
+    });
+    
 });
 
 ```
@@ -160,9 +186,11 @@ $ node client.js
 $
 
 edge server 1 voltage 16
+edge server 2 data-source-1 value node-edge
 device 200 temperature 25
 device 100 voltage 9
 edge server 2 temperature 25
+edge server 2 current temperature 25
 
 ```
 
