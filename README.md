@@ -134,24 +134,39 @@ let client = new m2m.Client();
 
 client.connect(() => {
     
-    /***
+    /********************************************************
      * m2m client (communication through a public internet)
-     */
-    // subscribe from m2m device 100
-    client.subscribe({id:100, channel:'m2m-voltage'}, (data) => {
-      console.log('device 100 voltage', data);
-    });
-
-    // subscribe from m2m device 200
-    client.subscribe({id:200, channel:'m2m-temperature'}, (data) => {
-      console.log('device 200 temperature', data);
-    });
-
-    /***
-     * edge tcp clients (communication through a private local network)
-     */
+     ********************************************************/
      
-    // client 1 
+    // method 1
+    let device1 = client.accessDevice(100)    // subscribe from m2m device 100
+    
+    device1.subscribe('m2m-voltage', (data) => {
+      console.log('m2m device 100 voltage', data);
+    });
+    
+    let device2 = client.accessDevice(200)    // subscribe from m2m device 200
+
+    device2.subscribe('m2m-temperature', (data) => {
+      console.log('m2m device 200 temperature', data);
+    });
+    
+    // or 
+    
+    // method 2
+    client.subscribe({id:100, channel:'m2m-voltage'}, (data) => {
+      console.log('m2m device 100 voltage', data);
+    });
+    
+    client.subscribe({id:200, channel:'m2m-temperature'}, (data) => {
+      console.log('m2m device 200 temperature', data);
+    });
+
+    /********************************************************************
+     * edge tcp clients (communication through a private local network)
+     ********************************************************************/
+     
+    // edge client 1 
     let ec1 = new m2m.edge.client(8125, '192.168.0.113');
     
     ec1.subscribe('edge-voltage', (data) => {
@@ -159,10 +174,10 @@ client.connect(() => {
     });
     
     ec2.write('data-source-1', 'node-edge', (data) => {
-      console.log('edge server 2 data-source-1 value', data.toString());
+      console.log('edge server 1 data-source-1 value', data.toString());
     });
 
-    // client 2
+    // edge client 2
     let ec2 = new m2m.edge.connect(8125, '192.168.0.142');
     
     ec2.subscribe('edge-temperature', (data) => {
@@ -186,9 +201,9 @@ $ node client.js
 $
 
 edge server 1 voltage 16
-edge server 2 data-source-1 value node-edge
-device 200 temperature 25
-device 100 voltage 9
+edge server 1 data-source-1 value node-edge
+m2m device 200 temperature 25
+m2m device 100 voltage 9
 edge server 2 temperature 25
 edge server 2 current temperature 25
 
