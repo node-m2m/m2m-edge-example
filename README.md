@@ -34,14 +34,14 @@ let host = '192.168.0.113'; 	// use the actual ip of your endpoint
 m2m.edge.createServer(port, host, (server) => {
   console.log('edge server started :', host, port);
   
-  server.publish('edge-voltage', (data) => { // using default 5 secs polling interval
+  server.publish('edge-voltage', (tcp) => { // using default 5 secs polling interval
      let vs = voltageSource();
      tcp.send(vs);
   });
   
-  server.dataSource('data-source-1', (data) => {
+  server.dataSource('data-source-1', (tcp) => {
      if(data.payload){
-        data.send(data.payload);
+        tcp.send(data.payload);
      }
   });
   
@@ -53,9 +53,9 @@ m2m.edge.createServer(port, host, (server) => {
 let device = new m2m.Device(100); // using deviceId of 100
 
 device.connect(() => {
-    device.publish('m2m-voltage', (data) => {
+    device.publish('m2m-voltage', (ws) => {
       let vs = voltageSource();
-      data.send(vs);
+      ws.send(vs);
     });
 });
 
@@ -90,14 +90,14 @@ let host = '192.168.0.142'; 	// use the actual ip of your endpoint
 m2m.edge.createServer(port, host, (server) => {
   console.log('tcp server started :', host, port);
   
-  server.publish('edge-temperature', (data) => {
+  server.publish('edge-temperature', (tcp) => {
      let ts = tempSource();
-     data.polling = 9000; 	// set polling interval to check data source for any changes
-     data.send(ts);
+     tcp.polling = 9000; 	// set polling interval to check data source for any changes
+     tcp.send(ts);
   });
   
-  server.dataSource('current-temp', (data) => {
-     data.send(tempSource()); 
+  server.dataSource('current-temp', (tcp) => {
+     tcp.send(tempSource()); 
   })
   
 });
@@ -108,9 +108,9 @@ m2m.edge.createServer(port, host, (server) => {
 let device = new m2m.Device(200);
 
 device.connect(() => {
-    device.publish('m2m-temperature', (data) => {
+    device.publish('m2m-temperature', (ws) => {
       let ts = tempSource();
-      data.send(ts);
+      ws.send(ts);
     });
 });
 
