@@ -25,13 +25,19 @@ function voltageSource(){
 }
 
 /***
+ * m2m device (communication through a public internet)
+ */
+let device = new m2m.Device(100); // using deviceId of 100
+
+/***
  * edge tcp server (communication through a private local network)
  */
-    
+let edge = new m2m.Edge()
+
 let port = 8125;		// port must be open from your endpoint
 let host = '192.168.0.113'; 	// use the actual ip of your endpoint
 
-m2m.edge.createServer(port, host, (server) => {
+edge.createServer(port, host, (server) => {
   console.log('edge server started :', host, port);
   
   server.publish('edge-voltage', (tcp) => { // using default 5 secs polling interval
@@ -44,13 +50,7 @@ m2m.edge.createServer(port, host, (server) => {
         tcp.send(data.payload);
      }
   });
-  
 });
-
-/***
- * m2m device (communication through a public internet)
- */
-let device = new m2m.Device(100); // using deviceId of 100
 
 device.connect(() => {
     device.publish('m2m-voltage', (ws) => {
@@ -81,13 +81,19 @@ function tempSource(){
 }
 
 /***
+ * m2m device (communication through a public internet)
+ */
+let device = new m2m.Device(200);
+
+/***
  * edge tcp server (communication through a private local network)
  */
-    
+let edge = new m2m.Edge()
+
 let port = 8125;		// port must be open from your endpoint
 let host = '192.168.0.142'; 	// use the actual ip of your endpoint
 
-m2m.edge.createServer(port, host, (server) => {
+edge.createServer(port, host, (server) => {
   console.log('tcp server started :', host, port);
   
   server.publish('edge-temperature', (tcp) => {
@@ -101,11 +107,6 @@ m2m.edge.createServer(port, host, (server) => {
   })
   
 });
-
-/***
- * m2m device (communication through a public internet)
- */
-let device = new m2m.Device(200);
 
 device.connect(() => {
     device.publish('m2m-temperature', (ws) => {
@@ -165,9 +166,10 @@ client.connect(() => {
     /********************************************************************
      * edge tcp clients (communication through a private local network)
      ********************************************************************/
-     
+    let edge = new m2m.Edge()
+    
     // edge client 1 
-    let ec1 = new m2m.edge.client(8125, '192.168.0.113');
+    let ec1 = new edge.client(8125, '192.168.0.113');
     
     ec1.subscribe('edge-voltage', (data) => {
       console.log('edge server 1 voltage', data.toString());
