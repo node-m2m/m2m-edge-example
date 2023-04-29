@@ -19,21 +19,17 @@ $ npm install m2m
 ```js
 const m2m = require('m2m')
 
-// simulated voltage sensor data source
+// simulated voltage data source
 function voltageSource(){
   return 50 + Math.floor(Math.random() * 10)
 }
 
 let device = new m2m.Device(100) // using deviceId of 100
-
 let edge = new m2m.Edge()
-
-let port = 8125		// port must be open from your endpoint
-let host = '192.168.0.113' 	// use the actual ip of your endpoint
 
 device.connect(() => {
     /***
-     * m2m device (communication through a public internet)
+     * m2m device (accessible through a public internet)
      */
     device.publish('m2m-voltage', (ws) => {
       let vs = voltageSource()
@@ -41,18 +37,22 @@ device.connect(() => {
     })
     
     /***
-     * edge tcp server (communication through a private local network)
-     */  
+     * edge tcp server (accessible through a private local network)
+     */
+    let port = 8125		// port must be open from your endpoint
+    let host = '192.168.0.113' 	// use the actual ip of your endpoint
+    
     edge.createServer(port, host, (server) => {
       console.log('edge server started :', host, port)
-      server.publish('edge-voltage', (tcp) => { // using default 5 secs polling interval
+      
+      server.publish('edge-voltage', (tcp) => { // using default 5 secs or 5000 ms polling interval
          let vs = voltageSource()
          tcp.send(vs)
       })
 
       server.dataSource('data-source-1', (tcp) => {
-         if(data.payload){
-            tcp.send(data.payload)
+         if(tcp.payload){
+            tcp.send(tcp.payload)
          }
       })
     })
@@ -80,15 +80,11 @@ function tempSource(){
 }
 
 let device = new m2m.Device(200)
-
 let edge = new m2m.Edge()
-
-let port = 8125		// port must be open from your endpoint
-let host = '192.168.0.142' 	// use the actual ip of your endpoint
 
 device.connect(() => {
     /***
-     * m2m device (communication through a public internet)
+     * m2m device (accessible through a public internet)
      */
     device.publish('m2m-temperature', (ws) => {
       let ts = tempSource()
@@ -96,18 +92,23 @@ device.connect(() => {
     })
     
     /***
-     * edge tcp server (communication through a private local network)
-     */  
+     * edge tcp server (accessible through a private local network)
+     */
+    let port = 8125		// port must be open from your endpoint
+    let host = '192.168.0.142' 	// use the actual ip of your endpoint 
+    
     edge.createServer(port, host, (server) => {
       console.log('tcp server started :', host, port)
+      
       server.publish('edge-temperature', (tcp) => {
          let ts = tempSource()
-         tcp.polling = 9000; 	// set polling interval to check data source for any changes
+         tcp.polling = 10000;	// set polling interval to 10000 ms or 10 secs instead of the default 5000 ms
          tcp.send(ts)
       });
 
       server.dataSource('current-temp', (tcp) => {
-         tcp.send(tempSource()) 
+         let ts = tempSource()
+         tcp.send(ts) 
       })
     })
 })
@@ -134,7 +135,7 @@ let edge = new m2m.Edge()
 
 client.connect(() => {
     /***
-     * m2m client (communication through a public internet)
+     * m2m client (access m2m devices through a public internet)
      */
     // method 1
     let device1 = client.accessDevice(100)
@@ -161,7 +162,7 @@ client.connect(() => {
     })
 
     /***
-     * edge tcp clients (communication through a private local network)
+     * edge tcp clients (access the edge server through a private local network)
      */
     // edge client 1 
     let ec1 = new edge.client(8125, '192.168.0.113')
