@@ -27,7 +27,9 @@ function voltageSource(){
 let device = new m2m.Device(100) // using deviceId of 100
 let edge = new m2m.Edge()
 
-device.connect(() => {
+device.connect(app)
+
+function app(){
     /***
      * m2m device (accessible through a public internet)
      */
@@ -56,7 +58,7 @@ device.connect(() => {
          }
       })
     })
-})
+}
 
 ```
 ### 3. Start your application.
@@ -82,7 +84,9 @@ function tempSource(){
 let device = new m2m.Device(200)
 let edge = new m2m.Edge()
 
-device.connect(() => {
+device.connect(app)
+
+function app(){
     /***
      * m2m device (accessible through a public internet)
      */
@@ -111,7 +115,7 @@ device.connect(() => {
          tcp.send(ts) 
       })
     })
-})
+}
 
 ```
 ### 3. Start your application.
@@ -133,7 +137,9 @@ let client = new m2m.Client()
 
 let edge = new m2m.Edge()
 
-client.connect(() => {
+client.connect(app)
+
+function app(){
     /***
      * m2m client (access m2m devices through a public internet)
      */
@@ -185,7 +191,7 @@ client.connect(() => {
     ec2.read('current-temp', (data) => {
       console.log('edge server 2 current temperature', data.toString())
     })
-})
+}
 
 ```
 ### 3. Start your application.
