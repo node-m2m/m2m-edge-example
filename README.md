@@ -140,7 +140,7 @@ let edge = new m2m.Edge()
 
 async function app(){
 
-    await client.connect(app)
+    await client.connect()
 
     /***
      * m2m client (access m2m devices through a public internet)
