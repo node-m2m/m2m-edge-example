@@ -84,9 +84,10 @@ function tempSource(){
 let device = new m2m.Device(200)
 let edge = new m2m.Edge()
 
-device.connect(app)
+async function app(){
 
-function app(){
+    await device.connect()
+
     /***
      * m2m device (accessible through a public internet)
      */
@@ -101,21 +102,21 @@ function app(){
     let port = 8125		// port must be open from your endpoint
     let host = '192.168.0.142' 	// use the actual ip of your endpoint 
     
-    edge.createServer(port, host, (server) => {
-      console.log('tcp server started :', host, port)
+    let server = edge.createServer(port, host)
+    console.log('tcp server started :', host, port)
       
-      server.publish('edge-temperature', (tcp) => {
-         let ts = tempSource()
-         tcp.polling = 10000;	// set polling interval to 10000 ms or 10 secs instead of the default 5000 ms
-         tcp.send(ts)
-      });
+    server.publish('edge-temperature', (tcp) => {
+       let ts = tempSource()
+       tcp.polling = 10000;	// set polling interval to 10000 ms or 10 secs instead of the default 5000 ms
+       tcp.send(ts)
+    });
 
-      server.dataSource('current-temp', (tcp) => {
-         let ts = tempSource()
-         tcp.send(ts) 
-      })
+    server.dataSource('current-temp', (tcp) => {
+       let ts = tempSource()
+       tcp.send(ts) 
     })
 }
+app()
 
 ```
 ### 3. Start your application.
@@ -137,9 +138,10 @@ let client = new m2m.Client()
 
 let edge = new m2m.Edge()
 
-client.connect(app)
+async function app(){
 
-function app(){
+    await client.connect(app)
+
     /***
      * m2m client (access m2m devices through a public internet)
      */
@@ -180,6 +182,9 @@ function app(){
     ec2.write('data-source-1', 'node-edge', (data) => {
       console.log('edge server 1 data-source-1 value', data.toString())
     })
+    // or
+    let wd = await ec2.write('data-source-1', 'node-edge')
+    console.log('edge server 1 data-source-1 value', wd.toString())
 
     // edge client 2
     let ec2 = new edge.client(8125, '192.168.0.142')
@@ -191,7 +196,11 @@ function app(){
     ec2.read('current-temp', (data) => {
       console.log('edge server 2 current temperature', data.toString())
     })
+    // or
+    let rd = await ec2.read('current-temp')
+    console.log('edge server 2 current temperature', rd.toString())
 }
+app()
 
 ```
 ### 3. Start your application.
