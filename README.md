@@ -1,5 +1,5 @@
 
-## Setup edge devices communicating through a private local area network 
+## Edge devices communicating through a private local area network 
 
 <br>
 
@@ -179,11 +179,11 @@ async function app(){
       console.log('edge server 1 voltage', data.toString())
     })
     
-    ec2.write('data-source-1', 'node-edge', (data) => {
+    ec1.write('data-source-1', 'node-edge', (data) => {
       console.log('edge server 1 data-source-1 value', data.toString())
     })
     // or
-    let wd = await ec2.write('data-source-1', 'node-edge')
+    let wd = await ec1.write('data-source-1', 'node-edge')
     console.log('edge server 1 data-source-1 value', wd.toString())
 
     // edge client 2
