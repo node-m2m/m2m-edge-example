@@ -24,23 +24,22 @@ function voltageSource(){
   return 50 + Math.floor(Math.random() * 10)
 }
 
-let m2mServer = new m2m.Server(100) // using serverId of 100
+let m2mServer = new m2m.Server(100)
 let edge = new m2m.Edge()
 
-m2m.connect(app)
-
-function app(){
-    /***
-     * m2m device - internet bound communication
-     */
+m2m.connect()
+.then(console.log) // success
+.then(() => {
+    // m2m server 1 - internet bound communication
+  
     m2mServer.publish('m2m-voltage', (ws) => {
       let vs = voltageSource()
       ws.send({id:ws.id, topic:ws.topic, type:'voltage', value:vs})
     })
-    
-    /***
-     * edge tcp server - private LAN communication
-     */
+})
+.then(() => {
+    // edge tcp server - private LAN communication
+  
     let port = 8125		// port must be open from your endpoint
     let host = '192.168.0.113' 	// use the actual ip of your endpoint
     
@@ -51,15 +50,15 @@ function app(){
          let vs = voltageSource()
          tcp.send({port:port, topic:tcp.topic, type:'voltage', value:vs})
       })
-
+  
       server.dataSource('data-source-1', (tcp) => {
          if(tcp.payload){
             tcp.send({port:port, topic:tcp.topic, payload:tcp.payload})
          }
       })
     })
-}
-
+})
+.catch(console.log)
 ```
 ### 3. Start your application.
 ```js
@@ -84,21 +83,19 @@ function tempSource(){
 let m2mServer = new m2m.Server(200)
 let edge = new m2m.Edge()
 
-async function main(){
+m2m.connect()
+.then(console.log) // success
+.then(() => {
+    // m2m server 2 - internet bound communication
 
-    await m2m.connect()
-
-    /***
-    * m2m device - internet bound communication
-     */
     m2mServer.publish('m2m-temperature', (ws) => {
       let ts = tempSource()
       ws.send({id:ws.id, topic:ws.topic, type:'temperature', value:ts})
     })
-    
-    /***
-     * edge tcp server - private LAN communication
-     */
+})
+.then(() => {
+    // edge tcp server - private LAN communication
+   
     let port = 8125		// port must be open from your endpoint
     let host = '192.168.0.142' 	// use the actual ip of your endpoint 
     
@@ -106,18 +103,17 @@ async function main(){
     console.log('tcp server started :', host, port)
       
     server.publish('edge-temperature', (tcp) => {
-       let ts = tempSource()
-       tcp.polling = 10000;	// set polling interval to 10000 ms or 10 secs instead of the default 5000 ms
-       tcp.send({port:port, topic:tcp.topic, type:'temperature', value:ts})
+      let ts = tempSource()
+      tcp.polling = 10000;	// set polling interval to 10000 ms or 10 secs instead of the default 5000 ms
+      tcp.send({port:port, topic:tcp.topic, type:'temperature', value:ts})
     });
 
     server.dataSource('current-temp', (tcp) => {
-       let ts = tempSource()
+      let ts = tempSource()
       tcp.send({port:port, topic:tcp.topic, value:ts})
     })
-}
-
-main()
+})
+.catch(console.log)
 
 ```
 ### 3. Start your application.
@@ -140,61 +136,46 @@ let client = new m2m.Client()
 let edge = new m2m.Edge()
 
 m2m.connect()
-.then(async (result) => {
-  console.log('connection:', result)
+.then(console.log) // success
+.then(() => {
+    // m2m client - access m2m servers through a public internet
 
-  /***
-   * m2m client - access m2m servers through a public internet
-   */
-  // method 1
-  let device1 = client.access(100)
-  
-  device1.subscribe('m2m-voltage', (data) => {
-    console.log('m2m device 100 voltage', data)
-  })
-  
-  let device2 = client.access(200)
-
-  device2.subscribe('m2m-temperature', (data) => {
-    console.log('m2m device 200 temperature', data)
-  })
+    // m2m server 1 
+    let server1 = client.access(100)
     
-  // or 
+    server1.subscribe('m2m-voltage', (data) => {
+      console.log('m2m device 100 voltage', data)
+    })
+
+    // m2m server 2 
+    let server2 = client.access(200)
   
-  // method 2
-  client.subscribe({id:100, channel:'m2m-voltage'}, (data) => {
-    console.log('m2m device 100 voltage', data)
-  })
-  
-  client.subscribe({id:200, channel:'m2m-temperature'}, (data) => {
-    console.log('m2m device 200 temperature', data)
-  })
+    server2.subscribe('m2m-temperature', (data) => {
+      console.log('m2m device 200 temperature', data)
+    })
 })
 .then(() => {
-  /***
-   * edge tcp clients - access edge servers through a private local network
-   */
-
-  // edge client 1 
-  let ec1 = new edge.client(8125, '192.168.0.113')
+    // edge tcp clients - access edge servers through a private local network
   
-  ec1.subscribe('edge-voltage', (data) => {
-    console.log('edge server 1 voltage', data)
-  })
-  
-  ec1.write('data-source-1', 'node-edge', (data) => {
-    console.log('edge server 1 data-source-1', data))
-  })
+    // edge client 1 
+    let ec1 = new edge.client(8125, '192.168.0.113')
+    
+    ec1.subscribe('edge-voltage', (data) => {
+      console.log('edge server 1 edge-voltage', data)
+    })
 
-  // edge client 2
-  let ec2 = new edge.client(8125, '192.168.0.142')
+    let wd = await ec1.write('data-source-1', 'node-edge')
+    console.log('edge server 1 data-source1', wd)
   
-  ec2.subscribe('edge-temperature', (data) => {
-    console.log('edge server 2 temperature', data))
-  })
+    // edge client 2
+    let ec2 = new edge.client(8125, '192.168.0.142')
+    
+    ec2.subscribe('edge-temperature', (data) => {
+      console.log('edge server 2 edge-temperature', data))
+    })
 
-  let rd = await ec2.read('current-temp')
-  console.log('edge server 2 current temperature', rd)
+    ec2.read('current-temp')
+    .then(console.log)
 })
 .catch((err) => {
   console.log('promise client error:', err) 
@@ -211,12 +192,12 @@ $ node client.js
 ```js
 $
 
-edge server 1 voltage {port:8125, topic:'edge-voltage', type:'voltage', value:16}
-edge server 1 data-source-1 {port:8125, topic:tcp.topic, payload:'node-edge'}
+edge server 1 edge-voltage {port:8125, topic:'edge-voltage', type:'voltage', value:16}
+edge server 1 data-source-1 {port:8125, topic:'data-source-1', payload:'node-edge'}
 m2m device 200 temperature {id:200, topic:'m2m-temperature', type:'temperature', value:25
 m2m device 100 voltage {id:100, topic:'m2m-voltage', type:'voltage', value:4
-edge server 2 temperature {port:8125, topic:'edge-temperature', type:'temperature', value:25}
-edge server 2 current temperature {port:8125, topic:'current-temperature', value:25}
+edge server 2 edge-temperature {port:8125, topic:'edge-temperature', type:'temperature', value:25}
+{port:8125, topic:'current-temp', value:25}
 
 ```
 
