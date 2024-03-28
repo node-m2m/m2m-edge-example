@@ -138,21 +138,30 @@ let edge = new m2m.Edge()
 m2m.connect()
 .then(console.log) // success
 .then(() => {
-    // m2m client - access m2m servers through a public internet
+    // m2m clients - access m2m servers through a public internet
 
-    // m2m server 1 
-    let server1 = client.access(100)
+    // m2m client 1 
+    let mc1 = new client.access(100)
     
-    server1.subscribe('m2m-voltage', (data) => {
+    mc1.subscribe('m2m-voltage', (data) => {
       console.log('m2m device 100 voltage', data)
     })
 
-    // m2m server 2 
-    let server2 = client.access(200)
+    // m2m client 2 
+    let mc2 = new client.access(200)
   
-    server2.subscribe('m2m-temperature', (data) => {
+    mc2.subscribe('m2m-temperature', (data) => {
       console.log('m2m device 200 temperature', data)
     })
+
+    // m2m clients unsubscribe
+    setTimeout(() => {
+      mc1.unsub('m2m-voltage')
+      .then(result => console.log(result.toString()))
+
+      mc2.unsub('m2m-temperature')
+      .then(result => console.log(result.toString()))
+    }, 30000)
 })
 .then(async () => {
     // edge tcp clients - access edge servers through a private local network
@@ -176,6 +185,15 @@ m2m.connect()
 
     ec2.read('current-temp')
     .then(console.log)
+
+    // edge clients unsubscribe
+    setTimeout(() => {
+      ec1.unsub('edge-voltage')
+      .then(result => console.log(result.toString()))
+
+      ec2.unsub('edge-temperature')
+      .then(result => console.log(result.toString()))
+    }, 60000)
 })
 .catch(console.log)
 ```
@@ -194,7 +212,19 @@ m2m device 200 temperature {id:200, topic:'m2m-temperature', type:'temperature',
 m2m device 100 voltage {id:100, topic:'m2m-voltage', type:'voltage', value:4
 edge server 2 edge-temperature {port:8125, topic:'edge-temperature', type:'temperature', value:25}
 {port:8125, topic:'current-temp', value:25}
-
+...
+true
+true
+edge server 1 edge-voltage { port: 8125, topic: 'edge-voltage', type: 'voltage', value: 54 }
+edge server 2 edge-temperature {
+  port: 8125,
+  topic: 'edge-temperature',
+  type: 'temperature',
+  value: 23
+}
+...
+true
+true
 ```
 
 
