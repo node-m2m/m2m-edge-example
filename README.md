@@ -3,9 +3,9 @@
 
 <br>
 
-In this example, we will setup endpoint devices communicating to each other through a local area network using tcp. 
+In this example, we will setup endpoint devices communicating with each other through a local area network using tcp. 
 
-The devices are also accessible from the cloud so you can configure and develop your applications using a browser interface. 
+The remote devices must be connected to the internet for authentication ensuring only authorized users can access the edge devices. You can also configure and develop your applications using a browser interface. 
 
 ![](assets/m2m-edge.svg)
 
@@ -75,7 +75,7 @@ $ npm install m2m
 ```js
 const m2m = require('m2m')
 
-// simulated temperature sensor data source
+// simulated temperature data source
 function tempSource(){
   return 20 + Math.floor(Math.random() * 4)
 }
@@ -154,7 +154,7 @@ m2m.connect()
       console.log('m2m device 200 temperature', data)
     })
 })
-.then(() => {
+.then(async () => {
     // edge tcp clients - access edge servers through a private local network
   
     // edge client 1 
@@ -171,17 +171,13 @@ m2m.connect()
     let ec2 = new edge.client(8125, '192.168.0.142')
     
     ec2.subscribe('edge-temperature', (data) => {
-      console.log('edge server 2 edge-temperature', data))
+      console.log('edge server 2 edge-temperature', data)
     })
 
     ec2.read('current-temp')
     .then(console.log)
 })
-.catch((err) => {
-  console.log('promise client error:', err) 
-})
-
-
+.catch(console.log)
 ```
 ### 3. Start your application.
 ```js
