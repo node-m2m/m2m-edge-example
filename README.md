@@ -164,7 +164,7 @@ m2m.connect()
   // edge client 2
   let ec2 = new edge.client({port:8126}) // localhost
   // or
-  //let ec2 = new edge.client(8126, '192.168.0.115') // // actual ip of edge server 2
+  //let ec2 = new edge.client(8126, '192.168.0.115') // actual ip of edge server 2
   
   ec2.subscribe('edge-temperature', (data) => {
     console.log('edge server 2 edge-temperature', data)
