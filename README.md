@@ -5,17 +5,17 @@
 
 In this example, we will setup endpoint devices communicating with each other through a local area network using tcp. 
 
-The remote devices must be connected to the internet for authentication ensuring only authorized users can access the edge devices. You can also configure and develop your applications using a browser interface. 
+The remote devices must be connected to the internet for authentication ensuring only authorized users can access the edge devices. This will also allow you to configure your edge endpoints and develop your applications using a browser interface. 
 
 ![](assets/m2m-edge.svg)
 
-## Edge Server 1 Setup
-
-### 1. Create a project directory and install m2m.
+### Install *m2m* in your edge endpoints.
 ```js
 $ npm install m2m
 ```
-### 2. Save the code below as device.js in your project directory.
+## Edge Server 1 Setup
+
+### 1. Save the code below as server.js in your server 1 project directory.
 ```js
 const m2m = require('m2m')
 
@@ -24,54 +24,58 @@ function voltageSource(){
   return 50 + Math.floor(Math.random() * 10)
 }
 
-let m2mServer = new m2m.Server(100)
 let edge = new m2m.Edge()
 
 m2m.connect()
 .then(console.log) // success
 .then(() => {
-    // m2m server 1 - internet bound communication
-  
-    m2mServer.publish('m2m-voltage', (ws) => {
-      let vs = voltageSource()
-      ws.send({id:ws.id, topic:ws.topic, type:'voltage', value:vs})
-    })
-})
-.then(() => {
     // edge tcp server - private LAN communication
   
-    let port = 8125		// port must be open from your endpoint
-    let host = '192.168.0.113' 	// use the actual ip of your endpoint
+    let port = 8125		        // port must be open from your endpoint
+    let host = '127.0.0.1' 	        // localhost
+    //let host = '192.168.0.114' 	// actual ip of server endpoint
     
     edge.createServer(port, host, (server) => {
-      console.log('edge server started :', host, port)
-      
+    // or just  
+    //edge.server({port:port, host:host}, (server) => {
+
+      // server resources
       server.publish('edge-voltage', (tcp) => { // using default 5 secs or 5000 ms polling interval
          let vs = voltageSource()
          tcp.send({port:port, topic:tcp.topic, type:'voltage', value:vs})
       })
-  
-      server.dataSource('data-source-1', (tcp) => {
-         if(tcp.payload){
-            tcp.send({port:port, topic:tcp.topic, payload:tcp.payload})
-         }
+
+      server.dataSource('/machine-1', (tcp) => { // common resources both for client read and write method 
+        let data = { id:tcp.id, rootTopic:tcp.rootTopic, subTopic:tcp.subTopic }
+      
+        if(tcp.topic === '/machine-1/sensor-1'){
+          let rn = Math.floor(Math.random() * 200)
+          data.type = 'sensor-1'
+          data.value = rn 
+        }
+        else if(tcp.topic === '/machine-1/sensor-2'){
+          let rn = Math.floor(Math.random() * 400)
+          data.type = 'sensor-2'
+          data.value = rn 
+        }
+        else if(tcp.topic === '/machine-1' && tcp.payload){
+          data.type = tcp.payload.type
+          data.value = tcp.payload.value
+        }  
+        tcp.send(data)
       })
     })
 })
 .catch(console.log)
 ```
-### 3. Start your application.
+### 2. Start your application.
 ```js
-$ node device.js
+$ node server.js
 ```
 
 ## Edge Server 2 Setup
 
-### 1. Create a project directory and install m2m.
-```js
-$ npm install m2m
-```
-### 2. Save the code below as device.js in your project directory.
+### 1. Save the code below as server.js in your server 2 project directory.
 ```js
 const m2m = require('m2m')
 
@@ -80,150 +84,142 @@ function tempSource(){
   return 20 + Math.floor(Math.random() * 4)
 }
 
-let m2mServer = new m2m.Server(200)
 let edge = new m2m.Edge()
 
 m2m.connect()
 .then(console.log) // success
 .then(() => {
-    // m2m server 2 - internet bound communication
-
-    m2mServer.publish('m2m-temperature', (ws) => {
-      let ts = tempSource()
-      ws.send({id:ws.id, topic:ws.topic, type:'temperature', value:ts})
-    })
-})
-.then(() => {
     // edge tcp server - private LAN communication
    
-    let port = 8125		// port must be open from your endpoint
-    let host = '192.168.0.142' 	// use the actual ip of your endpoint 
+    let port = 8126		        // port must be open from your endpoint
+    let host = '127.0.0.1' 	        // localhost
+    //let host = '192.168.0.115' 	// actual ip of server endpoint
+        
+    let server = edge.server({port:port, host:host})
+    // or
+    //let server = edge.createServer(port, host)
     
-    let server = edge.createServer(port, host)
-    console.log('tcp server started :', host, port)
-      
+    // server resources
     server.publish('edge-temperature', (tcp) => {
       let ts = tempSource()
-      tcp.polling = 10000;	// set polling interval to 10000 ms or 10 secs instead of the default 5000 ms
+      tcp.polling = 10000	// set polling interval to 10000 ms or 10 secs instead of the default 5000 ms
       tcp.send({port:port, topic:tcp.topic, type:'temperature', value:ts})
-    });
-
-    server.dataSource('current-temp', (tcp) => {
-      let ts = tempSource()
-      tcp.send({port:port, topic:tcp.topic, value:ts})
     })
+
+    server.get('/update-server-data/:id/new-data/:data', (req, res) => {
+      res.send({id:res.id, query:req.query, params:req.params})
+    })
+  
+    server.get('/device-state', (req, res) => {
+      res.send({id:res.id, path:res.path, query:req.query, params:req.params, state:'off'})
+    })
+  
+    server.post('/machine-control/:id/actuator/:number/action/:state', (req, res) => {
+      res.send({id:res.id, path:res.path, query:req.query, params:req.params})
+    })   
 })
 .catch(console.log)
-
 ```
-### 3. Start your application.
+### 2. Start your application.
 ```js
-$ node device.js
+$ node server.js
 ```
 
 ## Edge Client Setup
 
-### 1. Create a project directory and install m2m.
-```js
-$ npm install m2m
-```
-### 2. Save the code below as client.js in your project directory.
+### 1. Save the code below as client.js in your client project directory.
 ```js
 const m2m = require('m2m') 
-
-let client = new m2m.Client()
 
 let edge = new m2m.Edge()
 
 m2m.connect()
 .then(console.log) // success
 .then(() => {
-    // m2m clients - access m2m servers through a public internet
-
-    // m2m client 1 
-    let mc1 = new client.access(100)
-    
-    mc1.subscribe('m2m-voltage', (data) => {
-      console.log('m2m device 100 voltage', data)
-    })
-
-    // m2m client 2 
-    let mc2 = new client.access(200)
-  
-    mc2.subscribe('m2m-temperature', (data) => {
-      console.log('m2m device 200 temperature', data)
-    })
-
-    // m2m clients unsubscribe
-    setTimeout(() => {
-      mc1.unsub('m2m-voltage')
-      .then(result => console.log(result.toString()))
-
-      mc2.unsub('m2m-temperature')
-      .then(result => console.log(result.toString()))
-    }, 30000)
-})
-.then(async () => {
-    // edge tcp clients - access edge servers through a private local network
-  
     // edge client 1 
-    let ec1 = new edge.client(8125, '192.168.0.113')
-    
+    let ec1 = new edge.client(8125) // localhost
+    // or
+    //let ec1 = new edge.client({port:8125, ip:'192.168.0.114'}) // actual ip of edge server 1
+
     ec1.subscribe('edge-voltage', (data) => {
       console.log('edge server 1 edge-voltage', data)
     })
 
-    let wd = await ec1.write('data-source-1', 'node-edge')
-    console.log('edge server 1 data-source1', wd)
-  
-    // edge client 2
-    let ec2 = new edge.client(8125, '192.168.0.142')
-    
-    ec2.subscribe('edge-temperature', (data) => {
-      console.log('edge server 2 edge-temperature', data)
-    })
-
-    ec2.read('current-temp')
+    ec1.read('/machine-1/sensor-1')
     .then(console.log)
 
-    // edge clients unsubscribe
+    ec1.read('/machine-1/sensor-2')
+    .then(console.log)
+
+    ec1.write('/machine-1', {type:'root topic', value:350})
+    .then(console.log)
+
+    // unsubscribe
     setTimeout(() => {
       ec1.unsub('edge-voltage')
       .then(result => console.log(result.toString()))
+    }, 30000)
+})
+.then(() => {
+  // edge client 2
+  let ec2 = new edge.client({port:8126}) // localhost
+  // or
+  //let ec2 = new edge.client(8126, '192.168.0.115') // // actual ip of edge server 2
+  
+  ec2.subscribe('edge-temperature', (data) => {
+    console.log('edge server 2 edge-temperature', data)
+  })
 
-      ec2.unsub('edge-temperature')
-      .then(result => console.log(result.toString()))
-    }, 60000)
+  ec2.get('/update-server-data/320/new-data/'+JSON.stringify({pet:'cat', name:'Captain'})+'?name=Rv')
+  .then(console.log)
+  
+  ec2.post('/machine-control/150/actuator/5/action/on?name=Ed', {id:200, state:'true'})
+  .then(console.log)
+
+  // unsubscribe
+  setTimeout(() => {
+    ec2.unsub('edge-temperature')
+    .then(result => console.log(result.toString()))
+  }, 60000)
 })
 .catch(console.log)
 ```
-### 3. Start your application.
+### 2. Start your application.
 ```js
 $ node client.js
 ```
 
-### 4. The expected output should be similar as shown below.
+### The expected output should be similar as shown below.
 ```js
 $
-
-edge server 1 edge-voltage {port:8125, topic:'edge-voltage', type:'voltage', value:16}
-edge server 1 data-source-1 {port:8125, topic:'data-source-1', payload:'node-edge'}
-m2m device 200 temperature {id:200, topic:'m2m-temperature', type:'temperature', value:25
-m2m device 100 voltage {id:100, topic:'m2m-voltage', type:'voltage', value:4
-edge server 2 edge-temperature {port:8125, topic:'edge-temperature', type:'temperature', value:25}
-{port:8125, topic:'current-temp', value:25}
-...
-true
-true
-edge server 1 edge-voltage { port: 8125, topic: 'edge-voltage', type: 'voltage', value: 54 }
-edge server 2 edge-temperature {
-  port: 8125,
-  topic: 'edge-temperature',
-  type: 'temperature',
-  value: 23
+success
+{ subTopic: '/sensor-1', type: 'sensor-1', value: 168 }
+{ subTopic: '/sensor-2', type: 'sensor-2', value: 2 }
+{
+  rootTopic: '/machine-1',
+  subTopic: '',
+  type: 'root topic',
+  value: 350
+}
+{
+  query: { name: 'Rv' },
+  params: { id: '320', data: '{"pet":"cat","name":"Captain"}' }
+}
+{
+  path: '/machine-control/150/actuator/5/action/on?name=Ed',
+  query: { name: 'Ed' },
+  params: { id: '150', number: '5', state: 'on' }
 }
 ...
+edge server 1 edge-voltage { port: 8125, topic: 'edge-voltage', type: 'voltage', value: 59 }
 true
+...
+edge server 2 edge-temperature {
+  port: 8126,
+  topic: 'edge-temperature',
+  type: 'temperature',
+  value: 21
+}
 true
 ```
 
