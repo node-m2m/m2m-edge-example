@@ -3,9 +3,9 @@
 
 <br>
 
-In this example, we will setup endpoint devices communicating with each other through a local area network using tcp. 
+In this example, we will connect endpoint devices through a local area network using tcp. 
 
-The remote devices must be connected to the internet for authentication ensuring only authorized users can access the edge devices. This will also allow you to configure your edge endpoints and develop your applications using a browser interface. 
+The remote devices must be connected to the internet for authentication ensuring only authorized users can access the edge applications. Users can also configure or edit their edge applications using a browser interface. 
 
 ![](assets/m2m-edge.svg)
 
