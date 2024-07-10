@@ -3,8 +3,6 @@
 
 <br>
 
-In this example, we will connect endpoint devices through a local area network using tcp. 
-
 The remote devices must be connected to the internet for authentication ensuring only authorized users can access the edge applications. Users can also configure or edit their edge applications using a browser interface. 
 
 ![](assets/m2m-edge.svg)
@@ -29,22 +27,24 @@ let edge = new m2m.Edge()
 m2m.connect()
 .then(console.log) // success
 .then(() => {
-    // edge tcp server - private LAN communication
   
-    let port = 8125		        // port must be open from your endpoint
-    let host = '127.0.0.1' 	        // localhost
-    //let host = '192.168.0.114' 	// actual ip of server endpoint
+    let port = 8125		        // must be open if using the endpoint ip
+    let host = '127.0.0.1' 	        // using localhost
+    //let host = '192.168.0.114' 	// using endpoint ip 
     
     edge.createServer(port, host, (server) => {
-    // or just  
+    // or   
     //edge.server({port:port, host:host}, (server) => {
 
-      // server resources
+      // publish resource
       server.publish('edge-voltage', (tcp) => { // using default 5 secs or 5000 ms polling interval
+      // or
+      //server.pub('edge-voltage', (tcp) => { 
          let vs = voltageSource()
          tcp.send({port:port, topic:tcp.topic, type:'voltage', value:vs})
       })
 
+      // common client read/write resource
       server.dataSource('/machine-1', (tcp) => { // common resources both for client read and write method 
         let data = { id:tcp.id, rootTopic:tcp.rootTopic, subTopic:tcp.subTopic }
       
@@ -89,31 +89,33 @@ let edge = new m2m.Edge()
 m2m.connect()
 .then(console.log) // success
 .then(() => {
-    // edge tcp server - private LAN communication
    
-    let port = 8126		        // port must be open from your endpoint
-    let host = '127.0.0.1' 	        // localhost
-    //let host = '192.168.0.115' 	// actual ip of server endpoint
+    let port = 8126		        // must be open if using the endpoint ip
+    let host = '127.0.0.1' 	        // using localhost
+    //let host = '192.168.0.115' 	// using endpoint ip
         
     let server = edge.server({port:port, host:host})
     // or
     //let server = edge.createServer(port, host)
     
-    // server resources
-    server.publish('edge-temperature', (tcp) => {
+    // publish resource
+    server.pub('edge-temperature', (tcp) => {
       let ts = tempSource()
       tcp.polling = 10000	// set polling interval to 10000 ms or 10 secs instead of the default 5000 ms
       tcp.send({port:port, topic:tcp.topic, type:'temperature', value:ts})
     })
 
+    // http get resource
     server.get('/update-server-data/:id/new-data/:data', (req, res) => {
       res.send({id:res.id, query:req.query, params:req.params})
     })
-  
+
+    // http get resource
     server.get('/device-state', (req, res) => {
       res.send({id:res.id, path:res.path, query:req.query, params:req.params, state:'off'})
     })
-  
+
+    // http post resource
     server.post('/machine-control/:id/actuator/:number/action/:state', (req, res) => {
       res.send({id:res.id, path:res.path, query:req.query, params:req.params})
     })   
@@ -137,11 +139,13 @@ m2m.connect()
 .then(console.log) // success
 .then(() => {
     // edge client 1 
-    let ec1 = new edge.client(8125) // localhost
+    let ec1 = new edge.client(8125) // access server using localhost
     // or
-    //let ec1 = new edge.client({port:8125, ip:'192.168.0.114'}) // actual ip of edge server 1
+    //let ec1 = new edge.client({port:8125, ip:'192.168.0.114'}) // access server using its endpoint ip
 
     ec1.subscribe('edge-voltage', (data) => {
+    // or
+    // ec1.sub('edge-voltage', (data) => {
       console.log('edge server 1 edge-voltage', data)
     })
 
@@ -162,9 +166,9 @@ m2m.connect()
 })
 .then(() => {
   // edge client 2
-  let ec2 = new edge.client({port:8126}) // localhost
+  let ec2 = new edge.client({port:8126}) 
   // or
-  //let ec2 = new edge.client(8126, '192.168.0.115') // actual ip of edge server 2
+  //let ec2 = new edge.client(8126, '192.168.0.115') 
   
   ec2.subscribe('edge-temperature', (data) => {
     console.log('edge server 2 edge-temperature', data)
