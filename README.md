@@ -12,7 +12,7 @@ Each edge endpoint device must be connected to the internet for authentication.
 ```js
 $ npm install m2m
 ```
-## Edge Server 1 Setup
+## Server 1 Setup
 
 ### 1. Save the code below as server.js in your server 1 project directory.
 ```js
@@ -74,7 +74,7 @@ m2m.connect()
 $ node server.js
 ```
 
-## Edge Server 2 Setup
+## Server 2 Setup
 
 ### 1. Save the code below as server.js in your server 2 project directory.
 ```js
@@ -128,7 +128,7 @@ m2m.connect()
 $ node server.js
 ```
 
-## Edge Client Setup
+## Client Setup
 
 ### 1. Save the code below as client.js in your client project directory.
 ```js
