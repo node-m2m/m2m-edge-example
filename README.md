@@ -3,7 +3,7 @@
 
 <br>
 
-The remote devices must be connected to the internet for authentication ensuring only authorized users can access the edge applications. Users can also configure or edit their edge applications using a browser interface. 
+Each edge endpoint device must be connected to the internet for authentication. 
 
 [](assets/m2m-edge.svg)
 ![](assets/edge-system-example.png)
