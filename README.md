@@ -1,5 +1,5 @@
 
-## Edge devices communicating through a private local area network 
+## Edge endpoints communicating through a private local area network 
 
 <br>
 
@@ -18,12 +18,12 @@ $ npm install m2m
 ```js
 const m2m = require('m2m')
 
+let edge = new m2m.Edge()
+
 // simulated voltage data source
 function voltageSource(){
   return 50 + Math.floor(Math.random() * 10)
 }
-
-let edge = new m2m.Edge()
 
 m2m.connect()
 .then(console.log) // success
@@ -80,12 +80,12 @@ $ node server.js
 ```js
 const m2m = require('m2m')
 
+let edge = new m2m.Edge()
+
 // simulated temperature data source
 function tempSource(){
   return 20 + Math.floor(Math.random() * 4)
 }
-
-let edge = new m2m.Edge()
 
 m2m.connect()
 .then(console.log) // success
