@@ -1,5 +1,5 @@
 
-## Edge endpoints communicating through a private local area network 
+## Edge Computing Using Private Local Area Networking 
 
 <br>
 
