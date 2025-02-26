@@ -26,6 +26,7 @@ function voltageSource(){
 }
 
 m2m.connect()
+.catch(console.log)
 .then(console.log) // success
 .then(() => {
   
@@ -67,7 +68,6 @@ m2m.connect()
       })
     })
 })
-.catch(console.log)
 ```
 ### 2. Start your application.
 ```js
@@ -88,6 +88,7 @@ function tempSource(){
 }
 
 m2m.connect()
+.catch(console.log)
 .then(console.log) // success
 .then(() => {
    
@@ -121,7 +122,6 @@ m2m.connect()
       res.send({id:res.id, path:res.path, query:req.query, params:req.params})
     })   
 })
-.catch(console.log)
 ```
 ### 2. Start your application.
 ```js
@@ -137,6 +137,7 @@ const m2m = require('m2m')
 let edge = new m2m.Edge()
 
 m2m.connect()
+.catch(console.log)
 .then(console.log) // success
 .then(() => {
     // edge client 1 
@@ -187,7 +188,6 @@ m2m.connect()
     .then(result => console.log(result.toString()))
   }, 60000)
 })
-.catch(console.log)
 ```
 ### 2. Start your application.
 ```js
