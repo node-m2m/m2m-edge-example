@@ -1,12 +1,12 @@
 
 ## Edge Computing Using Private Local Area Networking 
 
+[](assets/m2m-edge.svg)
+![](assets/edge-system-example.png)
+
 <br>
 
 Each edge endpoint device must be connected to the internet for authentication. 
-
-[](assets/m2m-edge.svg)
-![](assets/edge-system-example.png)
 
 ### Install *m2m* in your edge endpoints.
 ```js
