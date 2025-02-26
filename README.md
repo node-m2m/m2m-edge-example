@@ -5,7 +5,8 @@
 
 The remote devices must be connected to the internet for authentication ensuring only authorized users can access the edge applications. Users can also configure or edit their edge applications using a browser interface. 
 
-![](assets/m2m-edge.svg)
+[](assets/m2m-edge.svg)
+![](assets/edge-system-example.png)
 
 ### Install *m2m* in your edge endpoints.
 ```js
