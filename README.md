@@ -1,5 +1,5 @@
 
-## Edge Computing Using Private Local Area Networking 
+## Edge Computing Using Private LAN 
 
 [](assets/m2m-edge.svg)
 ![](assets/edge-system-example.png)
@@ -8,7 +8,7 @@
 
 Each edge endpoint device must be connected to the internet for authentication. 
 
-### Install *m2m* in your edge endpoints.
+### Create a project directory for each endpoint and install *m2m*.
 ```js
 $ npm install m2m
 ```
